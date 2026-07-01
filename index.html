@@ -131,6 +131,14 @@
       </div>
 
       <div class="evidence-section">
+        <h3>SHAP plot</h3>
+        <div id="shap-plot-wrap">
+          <img id="shap-plot-img" src="" alt="SHAP plot" style="width:100%;border-radius:4px;border:1px solid var(--gray-200)">
+          <p id="shap-plot-missing" class="hidden" style="font-size:.78rem;color:var(--gray-400);font-style:italic">Plot not available for this case.</p>
+        </div>
+      </div>
+
+      <div class="evidence-section">
         <h3>SHAP values <small style="font-weight:400;text-transform:none;letter-spacing:0;color:#6b7280">(green = favourable · red = unfavourable)</small></h3>
         <table class="shap-table">
           <thead>

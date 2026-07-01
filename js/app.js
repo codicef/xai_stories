@@ -310,12 +310,29 @@ function updateProgressBar() {
   document.getElementById('eval-progress-bar').style.width = pct + '%';
 }
 
+function getPlotPath(caseData) {
+  const idx = parseInt(caseData.sample_idx, 10);
+  return `data/plots/${caseData.dataset}_sample_${idx}.png`;
+}
+
 function renderEvidence(caseData) {
   const e = caseData.evidence;
 
   document.getElementById('evidence-dataset').textContent = caseData.dataset_label;
   document.getElementById('evidence-predicted').textContent = e.predicted_survival || '—';
   document.getElementById('evidence-actual').textContent = e.actual_outcome || '—';
+
+  // SHAP plot image
+  const img = document.getElementById('shap-plot-img');
+  const missing = document.getElementById('shap-plot-missing');
+  const plotSrc = getPlotPath(caseData);
+  img.src = plotSrc;
+  img.classList.remove('hidden');
+  missing.classList.add('hidden');
+  img.onerror = () => {
+    img.classList.add('hidden');
+    missing.classList.remove('hidden');
+  };
 
   // SHAP table
   const tbody = document.getElementById('shap-tbody');
