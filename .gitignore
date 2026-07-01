@@ -1,0 +1,11 @@
+# Raw CSV data (processed into data/stories.json)
+data/100sample_*.csv
+
+# Research documents
+*.pdf
+
+# OS / editor
+.DS_Store
+*.swp
+__pycache__/
+*.pyc
