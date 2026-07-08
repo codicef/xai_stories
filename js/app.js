@@ -43,6 +43,7 @@ const LLMS = [
 ];
 
 const TEXT_LABELS = ['A', 'B', 'C', 'D'];
+const DEMO_USER = '__demo__';
 
 // ── Assignment: deterministic per-user case list ─────────────
 function totalCasesFor(userId) {
@@ -182,8 +183,6 @@ function handleLogin() {
   sessionStorage.setItem('xai_current_user', userId);
   startSession(userId);
 }
-
-const DEMO_USER = '__demo__';
 
 function handleDemo() {
   sessionStorage.setItem('xai_current_user', DEMO_USER);
