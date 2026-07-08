@@ -449,26 +449,6 @@ function renderRatingForm(caseId) {
     form.appendChild(section);
   });
 
-  // Add global preference after all 4 texts are rated (or at least show it)
-  const allTextsRated = TEXT_LABELS.every((l) => isTextRated(caseId, l));
-  if (allTextsRated || currentTextLabel === 'D') {
-    const prefSection = document.createElement('div');
-    prefSection.className = 'criterion-section preference-section';
-    const currentPref = (userState.ratings[caseId] || {}).preference;
-    prefSection.innerHTML = `
-      <div class="criterion-header">
-        <span class="criterion-name">Overall Preference</span>
-        <span class="criterion-desc">Which text did you find most clinically useful overall?</span>
-      </div>
-      <div class="pref-row" id="pref-row">
-        ${TEXT_LABELS.map((l) => `
-          <label class="pref-btn ${currentPref === l ? 'selected' : ''}">
-            <input type="radio" name="preference" value="${l}" ${currentPref === l ? 'checked' : ''}>
-            Text ${l}
-          </label>`).join('')}
-      </div>`;
-    form.appendChild(prefSection);
-  }
 }
 
 function saveCurrentRating(caseId) {
@@ -483,12 +463,6 @@ function saveCurrentRating(caseId) {
       userState.ratings[caseId][currentTextLabel][criterion.id] = parseInt(input.value, 10);
     }
   });
-
-  // Preference
-  const prefInput = document.querySelector('input[name="preference"]:checked');
-  if (prefInput) {
-    userState.ratings[caseId].preference = prefInput.value;
-  }
 
   setUserState(currentUser, userState);
 }
