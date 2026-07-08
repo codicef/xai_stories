@@ -7,14 +7,13 @@ const CONFIG = {
   // Add/remove names here before deploying.
   // Ordering matters: index is used as part of the assignment seed.
   users: [
-    'jerome',
-    'andre',
-    'ziyun',
-    'evaluator_4',
-    'evaluator_5',
-    'evaluator_6',
-    'evaluator_7',
-    'evaluator_8',
+    'Caroline Bret',
+    'Elvira Garcia de Paco',
+    'Morgane Thomas',
+    'Jérôme Moreaux',
+    'André Mas',
+    'Francesco Codicè',
+    'Ziyun Pan',
   ],
 
   // Number of patient cases per session (each case has 4 texts to rate)
