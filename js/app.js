@@ -45,8 +45,16 @@ const LLMS = [
 const TEXT_LABELS = ['A', 'B', 'C', 'D'];
 
 // ── Assignment: deterministic per-user case list ─────────────
+function totalCasesFor(userId) {
+  return userId === DEMO_USER ? 2 : CONFIG.totalCasesPerUser;
+}
+
+function casesPerSessionFor(userId) {
+  return userId === DEMO_USER ? 2 : CONFIG.casesPerSession;
+}
+
 function getUserCaseIds(userId, allCases) {
-  const n = CONFIG.totalCasesPerUser;
+  const n = totalCasesFor(userId);
   const seed = stringToSeed(userId);
 
   const metabric = allCases.filter((c) => c.dataset === 'metabric').map((c) => c.id);
@@ -136,7 +144,7 @@ function initApp() {
   populateUserSelect();
 
   const savedUser = sessionStorage.getItem('xai_current_user');
-  if (savedUser && CONFIG.users.includes(savedUser)) {
+  if (savedUser && (savedUser === DEMO_USER || CONFIG.users.includes(savedUser))) {
     startSession(savedUser);
   } else {
     showView('login-view');
@@ -156,6 +164,7 @@ function populateUserSelect() {
 
 document.addEventListener('click', (e) => {
   if (e.target.id === 'login-btn') handleLogin();
+  if (e.target.id === 'demo-btn') handleDemo();
   if (e.target.id === 'logout-btn') handleLogout();
   if (e.target.id === 'start-session-btn') beginNextSession();
   if (e.target.id === 'continue-session-btn') beginNextSession();
@@ -172,6 +181,13 @@ function handleLogin() {
   if (!userId) return;
   sessionStorage.setItem('xai_current_user', userId);
   startSession(userId);
+}
+
+const DEMO_USER = '__demo__';
+
+function handleDemo() {
+  sessionStorage.setItem('xai_current_user', DEMO_USER);
+  startSession(DEMO_USER);
 }
 
 function handleLogout() {
@@ -253,7 +269,8 @@ function showDashboard() {
   const textTotal = total * 4;
   const textDone = completed * 4;
 
-  document.getElementById('dash-username').textContent = currentUser;
+  document.getElementById('dash-username').textContent =
+    currentUser === DEMO_USER ? 'Demo mode' : currentUser;
   document.getElementById('dash-progress-text').textContent =
     `${textDone} / ${textTotal} text evaluations completed (${completed}/${total} cases)`;
 
@@ -263,10 +280,10 @@ function showDashboard() {
 
   // Session info
   const casesLeft = total - completed;
-  const casesThisSession = Math.min(casesLeft, CONFIG.casesPerSession);
+  const casesThisSession = Math.min(casesLeft, casesPerSessionFor(currentUser));
   document.getElementById('dash-session-info').textContent =
     completed === 0
-      ? `You have ${total} cases to evaluate. Each session covers ${CONFIG.casesPerSession} cases (~20–30 min).`
+      ? `You have ${total} cases to evaluate. Each session covers ${casesPerSessionFor(currentUser)} cases (~20–30 min).`
       : `${casesLeft} cases remaining. Next session: ${casesThisSession} cases.`;
 
   const btn = document.getElementById('start-session-btn');
@@ -298,13 +315,14 @@ function renderEvalView() {
 function updateProgressBar() {
   const total = userState.caseIds.length;
   const completed = getRatedCaseCount();
-  const sessionEnd = Math.min(sessionStartIndex + CONFIG.casesPerSession, total);
+  const sessionEnd = Math.min(sessionStartIndex + casesPerSessionFor(currentUser), total);
   const sessionCases = sessionEnd - sessionStartIndex;
   const sessionDone = currentCaseIndex - sessionStartIndex;
 
   document.getElementById('eval-case-counter').textContent =
     `Case ${currentCaseIndex + 1} of ${total}  ·  Session: ${sessionDone + 1}/${sessionCases}`;
-  document.getElementById('eval-user-label').textContent = currentUser;
+  document.getElementById('eval-user-label').textContent =
+    currentUser === DEMO_USER ? '🔍 Demo' : currentUser;
 
   const pct = Math.round((completed / total) * 100);
   document.getElementById('eval-progress-bar').style.width = pct + '%';
@@ -523,7 +541,7 @@ function submitCase() {
   // Advance to next case
   currentCaseIndex++;
 
-  const sessionEnd = Math.min(sessionStartIndex + CONFIG.casesPerSession, userState.caseIds.length);
+  const sessionEnd = Math.min(sessionStartIndex + casesPerSessionFor(currentUser), userState.caseIds.length);
   const totalDone = getRatedCaseCount();
 
   if (currentCaseIndex >= userState.caseIds.length) {
