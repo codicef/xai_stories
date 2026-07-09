@@ -55,6 +55,13 @@ function casesPerSessionFor(userId) {
 }
 
 function getUserCaseIds(userId, allCases) {
+  // MM-only evaluators: use precomputed uniform assignment, shuffle for presentation order
+  if (precomputedAssignments[userId]) {
+    const seed = stringToSeed(userId + '_order');
+    return seededShuffle(precomputedAssignments[userId], seed);
+  }
+
+  // Other users: balanced random assignment across both datasets
   const n = totalCasesFor(userId);
   const seed = stringToSeed(userId);
 
@@ -115,8 +122,9 @@ function setUserState(userId, state) {
 }
 
 // ── App globals ───────────────────────────────────────────────
-let allCases = [];    // full data from stories.json
-let caseMap = {};     // id → case object
+let allCases = [];             // full data from stories.json
+let caseMap = {};              // id → case object
+let precomputedAssignments = {}; // from assignments.json (MM-only users)
 
 let currentUser = null;
 let userState = null;
@@ -126,11 +134,14 @@ let sessionStartIndex = 0;  // first case index of current session
 
 // ── Boot ─────────────────────────────────────────────────────
 document.addEventListener('DOMContentLoaded', () => {
-  fetch('data/stories.json')
-    .then((r) => r.json())
-    .then((data) => {
-      allCases = data.cases;
+  Promise.all([
+    fetch('data/stories.json').then((r) => r.json()),
+    fetch('data/assignments.json').then((r) => r.json()),
+  ])
+    .then(([storiesData, assignmentsData]) => {
+      allCases = storiesData.cases;
       allCases.forEach((c) => { caseMap[c.id] = c; });
+      precomputedAssignments = assignmentsData;
       initApp();
     })
     .catch((err) => {

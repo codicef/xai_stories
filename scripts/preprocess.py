@@ -147,6 +147,46 @@ def main():
 
     size_mb = out_path.stat().st_size / 1_000_000
     print(f'Saved {len(all_cases)} cases → {out_path} ({size_mb:.1f} MB)')
+
+    # ── MM-only uniform assignment ────────────────────────────────
+    # These evaluators review ONLY MM cases, distributed as uniformly as possible.
+    # 5 users × 25 cases = 125 assignments over 100 MM cases:
+    #   → 75 cases seen by exactly 1 user, 25 cases seen by exactly 2 users.
+    # Strategy: each user gets a non-overlapping primary block of 20 cases +
+    # a secondary block of 5 cases taken from 2 positions ahead (circular),
+    # so the "double-covered" cases are evenly spread across the 100-case range.
+    MM_EVALUATORS = [
+        'Caroline Bret',
+        'Elvira Garcia de Paco',
+        'Morgane Thomas',
+        'Jérôme Moreaux',
+        'André Mas',
+    ]
+
+    n_mm = len(mm_cases)          # 100
+    n_eval = len(MM_EVALUATORS)   # 5
+    block = n_mm // n_eval        # 20 primary cases per user
+    secondary = 25 - block        # 5 extra cases per user
+
+    mm_assignment = {}
+    for i, user in enumerate(MM_EVALUATORS):
+        primary_ids   = [c['id'] for c in mm_cases[i * block : (i + 1) * block]]
+        sec_start     = ((i + 2) * block) % n_mm
+        secondary_ids = [c['id'] for c in mm_cases[sec_start : sec_start + secondary]]
+        mm_assignment[user] = primary_ids + secondary_ids
+
+    # Print coverage report
+    from collections import Counter
+    cov = Counter(cid for ids in mm_assignment.values() for cid in ids)
+    once  = sum(1 for v in cov.values() if v == 1)
+    twice = sum(1 for v in cov.values() if v == 2)
+    print(f'\nMM-only assignment ({n_eval} evaluators, {25} cases each):')
+    print(f'  Covered 1×: {once} cases  |  Covered 2×: {twice} cases  |  Uncovered: {n_mm - len(cov)}')
+
+    assign_path = DATA_DIR / 'assignments.json'
+    with open(assign_path, 'w', encoding='utf-8') as f:
+        json.dump(mm_assignment, f, ensure_ascii=False, indent=2)
+    print(f'  Saved → {assign_path}')
     print(f'  METABRIC: {len(metabric_cases)} cases')
     print(f'  MM:       {len(mm_cases)} cases')
 
