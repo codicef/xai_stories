@@ -8,6 +8,7 @@ import csv
 import json
 import re
 import sys
+from collections import Counter
 from pathlib import Path
 
 DATA_DIR = Path(__file__).parent.parent / 'data'
@@ -148,6 +149,25 @@ def main():
     size_mb = out_path.stat().st_size / 1_000_000
     print(f'Saved {len(all_cases)} cases → {out_path} ({size_mb:.1f} MB)')
 
+    # ── METABRIC-only assignment (Francesco & Ziyun) ─────────────
+    # 2 users × 25 cases = 50 assignments over 100 METABRIC cases.
+    # Non-overlapping, interleaved (even/odd indices) so both users
+    # sample the same spread of the distribution rather than one
+    # taking early cases and the other late cases.
+    METABRIC_EVALUATORS = [
+        'Francesco Codicè',
+        'Ziyun Pan',
+    ]
+
+    metabric_assignment = {
+        'Francesco Codicè': [c['id'] for c in metabric_cases[0::2][:25]],
+        'Ziyun Pan':        [c['id'] for c in metabric_cases[1::2][:25]],
+    }
+
+    cov_m = Counter(cid for ids in metabric_assignment.values() for cid in ids)
+    print(f'\nMETABRIC-only assignment (2 evaluators, 25 cases each):')
+    print(f'  Covered 1×: {sum(1 for v in cov_m.values() if v==1)} cases  |  Uncovered: {len(metabric_cases) - len(cov_m)}')
+
     # ── MM-only uniform assignment ────────────────────────────────
     # These evaluators review ONLY MM cases, distributed as uniformly as possible.
     # 5 users × 25 cases = 125 assignments over 100 MM cases:
@@ -176,16 +196,16 @@ def main():
         mm_assignment[user] = primary_ids + secondary_ids
 
     # Print coverage report
-    from collections import Counter
     cov = Counter(cid for ids in mm_assignment.values() for cid in ids)
     once  = sum(1 for v in cov.values() if v == 1)
     twice = sum(1 for v in cov.values() if v == 2)
     print(f'\nMM-only assignment ({n_eval} evaluators, {25} cases each):')
     print(f'  Covered 1×: {once} cases  |  Covered 2×: {twice} cases  |  Uncovered: {n_mm - len(cov)}')
 
+    all_assignments = {**metabric_assignment, **mm_assignment}
     assign_path = DATA_DIR / 'assignments.json'
     with open(assign_path, 'w', encoding='utf-8') as f:
-        json.dump(mm_assignment, f, ensure_ascii=False, indent=2)
+        json.dump(all_assignments, f, ensure_ascii=False, indent=2)
     print(f'  Saved → {assign_path}')
     print(f'  METABRIC: {len(metabric_cases)} cases')
     print(f'  MM:       {len(mm_cases)} cases')
