@@ -11,9 +11,9 @@ const CONFIG = {
     'Elvira Garcia de Paco',
     'Morgane Thomas',
     'Jérôme Moreaux',
-    'André Mas',
     'Francesco Codicè',
     'Ziyun Pan',
+    'André Mas',
   ],
 
   // Number of patient cases per session (each case has 4 texts to rate)
