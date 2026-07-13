@@ -61,10 +61,16 @@ function getUserCaseIds(userId, allCases) {
     return seededShuffle(precomputedAssignments[userId], seed);
   }
 
-  // Other users: balanced random assignment across both datasets
   const n = totalCasesFor(userId);
   const seed = stringToSeed(userId);
 
+  // Demo: METABRIC only
+  if (userId === DEMO_USER) {
+    const metabric = allCases.filter((c) => c.dataset === 'metabric').map((c) => c.id);
+    return seededShuffle(metabric, seed).slice(0, n);
+  }
+
+  // Other users: balanced random assignment across both datasets
   const metabric = allCases.filter((c) => c.dataset === 'metabric').map((c) => c.id);
   const mm = allCases.filter((c) => c.dataset === 'mm').map((c) => c.id);
 
